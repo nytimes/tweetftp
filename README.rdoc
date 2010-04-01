@@ -57,6 +57,15 @@ is hope though! Heavy users of twitter may apply for an elevated rate limit of
 shared via tweetftp, and the journey is more important than reaching the destination,
 isn't it?
 
+Search also has its limitation. Currently the Twitter search API returns no
+more than 30 pages of 50 results, meaning that it currently constrains
+uploaded files to a theoretical maximum of 1498 tweets of 77 Base-64 bits,
+meaning a maximum file size of 901K if you wanted to retrieve all of the
+fragments in a single go. That said, there are now multiple competing twitter
+search engines, and the tweetftp should support a streaming mode for download
+where fragments can be retrieved before the entire file is uploaded (not currently
+supported in this code).
+
 Since it would take only 60,000 or so tweets to transmit an MP3, there would
 exist the natural temptation to use this mechanism for illegal file sharing.
 This problem is best addressable through legal and social solutions however,
@@ -66,8 +75,9 @@ NEVER use tweetftp to illegally share copyrighted material.
 == Roadmap
 
 * Actual tests
+* "Streaming" file downloads
 * Checksum verifications of downloads
-* TworrentTracker for tracking public file uploads to twitter
+* Create a new standard named BitTworrent that allows files to be spread across multiple accounts.
 * Get purchased by Google, Facebook, or a desperate media company.
 
 == Copyright

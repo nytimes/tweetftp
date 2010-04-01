@@ -69,9 +69,19 @@ class Tweetftp
 
     sorted_fragments = fragments.reject {|f| f =~ /^==/}.sort_by {|a| a.to_i }
     
-    puts sorted_fragments.inspect
+    #puts fragments.inspect
 
-    mode = 644 # FIXME
+    header = fragments.detect {|f| f =~ /^==BEGIN/}
+    
+    raise "No header found!" if header.nil?
+    
+    if header =~ /^==BEGIN ([^\s]+) (\d+) /
+      filename = $1
+      mode = $2
+    else
+      raise "Unable to parse the header"
+    end
+
     tf.write "begin-base64 #{mode} tweetftp.tmp\n"
     
     sorted_fragments.each do |f|
@@ -82,8 +92,11 @@ class Tweetftp
     
     tf.write "====\n"
     tf.close
+    
+    final_path = "#{options[:save_to].gsub(/\/$/, '')}/#{filename}"
 
-    system("uudecode -o /tweetftp.dat #{tf.path}")
+    system("uudecode -o #{final_path} #{tf.path}")
+    final_path
   end
   
 private
