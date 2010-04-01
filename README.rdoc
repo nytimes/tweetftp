@@ -1,16 +1,74 @@
 = tweetftp
 
-Description goes here.
+Finally, a mechanism for sharing files on twitter that works WITHIN twitter
+itself. No more third-party services and cryptic short URLs, now you can share files directly
+with your friends or with the world one tweet at a time.
 
-== Note on Patches/Pull Requests
- 
-* Fork the project.
-* Make your feature addition or bug fix.
-* Add tests for it. This is important so I don't break it in a
-  future version unintentionally.
-* Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
-* Send me a pull request. Bonus points for topic branches.
+== Uploading Files
+
+A file is uploaded to the status service as a series of messages:
+
+* One header for the file transfer. This contains the string "==BEGIN", the file name, file permissions, and a modified Base64-encoded string of the file's MD5 checksum with the hashtag "#tweetftp" on the end. We modify the string to remove the trailing = signs and replace the characters '+' and '/' with '-' and '_' respectively. While clients may use the checksum to verify the file was retrieved correctly, this is not a requirement: the checksum is primarily used to associate the status updates with one another. The header is also where clients may add a few hashtags to describe the file.
+* 0 or more Description lines. These include the string ==DESC, the modified checksum string from the header, a numerical index, and freeform text. Clients use the index to stitch together a text description from multiple messages.
+* The file itself. This is transmitted as multiple lines with the following fields: an index (starting from 0), up to 77-bytes of the Base64-uuencoding of the file, and the checksum string.
+* A message footer. This contains the string "==END", the file name again, the total number of file message lines, and the Checksum string again.
+
+Fields for each message type are separated with a single space. In addition,
+if the file transfer is meant to be addressed to a single recipient (rather
+than shared with everybody), each message type is prefixed with the @username
+of the recipient. An example (with the data lines truncated for conciseness)
+is below.
+
+  ==BEGIN random.txt 644 106flmMwmFtfZnkYTf1g-g #tweetftp
+  ==DESC 0 This is a test. This is only a test. But I can write a bunch of words about 106flmMwmFtfZnkYTf1g-g #tweetftp
+  ==DESC 1 it being a test here and see how it works. #foo #bar #baz 106flmMwmFtfZnkYTf1g-g #tweetftp
+  0 YnJlYWtmYXN0Cmx1bmNoCmRpbm5lcgpzbmFjawplYXRpbmcKZHJpbmtpbmcKZWF0aW5nCm1lYWwK 106flmMwmFtfZnkYTf1g-g #tweetftp
+  1 CnNhbmR3aWNoCiAgc2FuZHdpY2hlcwogIHNhbW1pY2gKICBiYXAKICBncmluZGVyCiAgaG9hZ2ll 106flmMwmFtfZnkYTf1g-g #tweetftp
+  ...
+  31 dWVlbg== 106flmMwmFtfZnkYTf1g-g #tweetftp
+  ==END food_terms.txt 32 106flmMwmFtfZnkYTf1g-g #tweetftp
+
+== Downloading Files
+
+To download the files from tweetftp, it is enough to use the MD5
+checksum string to retrieve all the individual fragments and reassemble
+into a single file. This MD5 checksum can either be retrieved directly
+from the message header or footer or could be sent separately to 
+intended recipients. Once all of the individual message fragments 
+are retrieved, the index fields can be used to reorder the parts into
+a file which is then uudecoded onto local storage. Note that while the
+Base64 checksum should be unique enough to find the file, it is recommended
+that the sender's identity is also factored into the search. Otherwise, it
+might be possible to third parties to corrupt files by sending their own
+spoof messages with the same checksum string.
+
+== Practical Considerations
+
+Security is not specified in this approach. Users have the option of
+using specific security mechanisms to encrypt/sign the file before
+transmitting it. For access control, you can share files on a protected
+account.
+
+Twitter currently allows API clients to only post up to 150 messages per hour.
+This practically limits this mechanism to a maximum speed of 0.019kbps. There
+is hope though! Heavy users of twitter may apply for an elevated rate limit of
+20000 requests per hour, which increases throughput to a comparatively blazing
+2.51kbps. On the bright side, this means that only truly important files will be
+shared via tweetftp, and the journey is more important than reaching the destination,
+isn't it?
+
+Since it would take only 60,000 or so tweets to transmit an MP3, there would
+exist the natural temptation to use this mechanism for illegal file sharing.
+This problem is best addressable through legal and social solutions however,
+and technical approaches are beyond the reach of this document. Remember,
+NEVER use tweetftp to illegally share copyrighted material.
+
+== Roadmap
+
+* Actual tests
+* Checksum verifications of downloads
+* TworrentTracker for tracking public file uploads to twitter
+* Get purchased by Google, Facebook, or a desperate media company.
 
 == Copyright
 
